@@ -1,0 +1,103 @@
+---
+title: "Predictive Analytics"
+author: "Jatinder Singh Malhi"
+date: "06/06/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(rpart)
+library(rpart.plot)
+library(ggeffects)
+```
+
+```{r}
+anz_data <- read.csv("ANZ_data_set.csv",comment.char = "#")
+head(anz_data)
+```
+
+```{r}
+unique_id <- unique(anz_data$customer_id)
+uniqu_txn <- anz_data[anz_data$txn_description == "PAY/SALARY",]
+emptyyy_df <- data.frame()
+for (id in unique_id) {
+  totalsalary <- 0
+  freq <- 0
+  for (rw in 1:nrow(uniqu_txn)) {
+    if (id == uniqu_txn[rw,"customer_id"])
+    {
+      totalsalary = totalsalary+uniqu_txn[rw,"amount"]
+      freq <- freq +1
+      name <- uniqu_txn[rw, "first_name"]
+      age <- uniqu_txn[rw,"age"]
+      gender <- uniqu_txn[rw,"gender"]
+      merchant <- uniqu_txn[rw, "merchant_state"]
+    }
+  }
+  vect <- c(id, name,age, totalsalary,gender, freq, merchant)
+  emptyyy_df <-  rbind(emptyyy_df,vect)
+}
+colnames(emptyyy_df) <- c("ID", "Name", "Age", "Three_Months_Salary", "Gender","Frequency", "State")
+emptyyy_df$yearly_salary <- (as.numeric(emptyyy_df$Three_Months_Salary )/92) * 365
+```
+```{r}
+ggplot(data = emptyyy_df,mapping = aes(x= as.numeric(Age), y = yearly_salary),color = "blue")+geom_point()+facet_wrap(~ Gender, nrow = 2) + geom_smooth()
+ggplot(data = emptyyy_df,mapping = aes(x=Age,y = yearly_salary))+geom_point(mapping = aes(color = Gender))
+ggplot(data =  emptyyy_df)+ geom_pointrange(mapping = aes(x = Age, y = yearly_salary), stat = "summary", fun.min = min, fun.max = max, fun = median)
+```
+
+```{r}
+ggplot(data = emptyyy_df)+geom_bar(mapping = aes(x = Age, fill = Age)) + coord_flip()
+ggplot(data = emptyyy_df, aes(x= Age, y = yearly_salary, color = Gender))+geom_boxplot() + coord_flip()
+
+```
+
+```{r}
+# ggplot(data = emptyyy_df, aes(x = as.numeric(Age), y = yearly_salary))+geom_point()+stat_smooth(method = "lm", col = "yellow")
+head(emptyyy_df)
+linear <- lm(yearly_salary  ~ as.numeric(Age), data = emptyyy_df)
+ggpredict(linear)
+plot(emptyyy_df$Age, emptyyy_df$yearly_salary, col = "blue")
+abline(linear, col = "green")
+par(mfrow = (c(2,2)))
+plot(linear)
+summary(linear)
+
+
+```
+
+
+```{r}
+library(modelr)
+emptyyy_df$Age <- as.numeric(emptyyy_df$Age)
+emptyyy_df$Three_Months_Salary <- as.numeric(emptyyy_df$Three_Months_Salary)
+emptyyy_df$Gender <- as.numeric(emptyyy_df$Gender)
+cor(emptyyy_df[,c(3,4)])
+train_Index <- 1:(size = floor(0.60*nrow(emptyyy_df)))
+df_train <- emptyyy_df[train_Index,]
+df_test <- emptyyy_df[-train_Index,]
+Y_Train <- df_train$yearly_salary
+Y_Test <- df_test$yearly_salary
+df_train <- df_train[,c(3,4)]
+df_test <- df_test[,c(3,4)]
+XY_train <- cbind(as.data.frame(df_train),Y = Y_Train)
+XY_test <- cbind(as.data.frame(df_test), Y = Y_Test)
+t1 <- rpart(Y ~., data= XY_train, method = "anova")
+rpart.plot(t1, tweak = 1.1, fallen.leaves = FALSE, digits = 3)
+Y_predi <- predict(t1, XY_test, method = "anova")
+R2 <- rsquare(t1, data = XY_train)
+RMSE <- rmse(t1, data = XY_train)
+MAE <- mae(t1, data = XY_train)
+R22 <- rsquare(t1, data = XY_test)
+RMSE2 <- rmse(t1, data = XY_test)
+MAE2 <-mae(t1, data = XY_test)
+train_test_comparison <- (cbind(R2, RMSE, MAE))
+train_test_comparison1 <- (cbind(R22, RMSE2, MAE2))
+tmt <- as.data.frame(rbind(train_test_comparison,train_test_comparison1))
+row.names(tmt) <- c("Train_model", "Test_model")
+knitr::kable(tmt)
+```
