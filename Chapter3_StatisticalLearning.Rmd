@@ -145,6 +145,7 @@ Exercise13
 ```{r}
 
 X = rnorm(100, mean = 0, sd = 1)
+length(X)
 eps = rnorm(100, mean = 0, sd = 0.25)
 Y = -1 + 0.5 * X + eps
 length(Y)
@@ -157,7 +158,25 @@ legend("topleft",
        legend = c("Line1", "Line2"),
        col = c("blue", "red"), lwd = 3)
 
-quad_term <- lm()
+ggplot(mapping = aes(x = X, y = Y)) + geom_point() + stat_smooth(method = "lm" ,
+                                                                 formula = y ~ poly(x, 2), size = 1, color = "blue") + stat_smooth(method = "lm" , formula = y ~ x, size = 1, color = "red")
+quad_model <- lm(Y ~ poly(X,2))
+anova(least_model, quad_model)
+ggpredict(quad_model)
+ggpredict(least_model)
+```
+
+Exercise14
+```{r}
+set.seed(1)
+x1 <- runif(100)
+x2 <- 0.5*x1 + rnorm(100)/10
+y <- 2 + 2*x1 + 0.3*x2 + rnorm(100)
+forteen_linear <- lm(y ~ x1 + x2)
+cor(x1,x2)
+ggplot() + geom_jitter(mapping = aes(x = x1, y = y), color = "green") + stat_smooth(method = "lm" ,aes(x = x1, y = y), se = FALSE) +
+  geom_jitter(mapping = aes(x = x2, y = y), color = "red") + stat_smooth(method = "lm" ,aes(x = x2, y = y), se = FALSE)
+summary(forteen_linear)
 ```
 
 
