@@ -1,10 +1,9 @@
 ---
-title: "Chapter3StatisticalLearning"
+title: "StatisticalLearning"
 author: "Jatinder Singh Malhi"
-date: "22/06/2021"
+date: "13/06/2021"
 output: html_document
 ---
-
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -100,6 +99,8 @@ plot(multi_linearauto)
 ```{r}
 head(Carseats)
 car_multilinear <- lm(Sales ~ Price + Urban + US , data = Carseats)
+
+# ggpredict(car_multilinear)
 car_linear <- lm(Sales ~ Price  , data = Carseats)
 plot(Carseats$Price, Carseats$Sales)
 abline(car_linear)
@@ -121,44 +122,14 @@ summary(withoiutInterceptLinear)
 summary(xOntoY)
 ```
 
-Exercise 12
-```{r}
-set.seed(1)
-X = rnorm(100, mean = 1000, sd = 0.1)
-Y = rnorm(100, mean = 1000, sd = 0.1)
-yOntox <- lm(Y ~ X )
-summary(yOntox)
-plot(X, Y)
-abline(yOntox)
-par(mfrow = c(2,2))
-plot(yOntox)
 
-xOntoy <- lm(X ~ Y)
-summary(xOntoy)
-plot(Y, X)
-abline(xOntoy)
-par(mfrow = c(2,2))
-plot(xOntoy)
-```
 
-Exercise13
-```{r}
 
-X = rnorm(100, mean = 0, sd = 1)
-eps = rnorm(100, mean = 0, sd = 0.25)
-Y = -1 + 0.5 * X + eps
-length(Y)
-least_model <- lm(Y ~ X)
-plot(X, Y)
-abline(-1, 0.5, col = "blue")
-abline(least_model, col = "red")
-summary(least_model)
-legend("topleft",
-       legend = c("Line1", "Line2"),
-       col = c("blue", "red"), lwd = 3)
 
-quad_term <- lm()
-```
+
+
+
+
 
 
 
